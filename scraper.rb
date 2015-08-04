@@ -29,7 +29,7 @@ end
 def scrape_term(id, url)
   noko = noko_for(url)
   members = current_members(noko, url, id) + expired_members(noko, url, id)
-  ScraperWiki.save_sqlite([:name, :term], members)
+  ScraperWiki.save_sqlite([:id, :term], members)
 end
 
 
@@ -57,6 +57,7 @@ def current_members(noko, url, termid)
     klub.xpath('following-sibling::tr[2]//li').each do |li|
       mem = li.css('a').first
       data = { 
+        id: mem.attr('title').downcase.gsub(/ /,'-'),
         name: mem.text,
         wikipedia__pl: URI.join(url, URI.escape(mem.attr('href'))).to_s,
         term: termid, 
@@ -94,6 +95,7 @@ def expired_members(noko, url, termid)
     end
     mem = tds[0].css('a').first
     data = { 
+      id: mem.attr('title').downcase.gsub(/ /,'-'),
       name: mem.text,
       wikipedia__pl: URI.join(url, URI.escape(mem.attr('href'))).to_s,
       party: @colors[color],
