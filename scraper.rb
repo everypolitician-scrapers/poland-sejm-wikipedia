@@ -20,6 +20,12 @@ def noko_for(url)
   Nokogiri::HTML(open(url).read)
 end
 
+def month(str)
+  idx = ['','styczeń','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'].find_index(str)
+  warn "Need month for #{str}".magenta unless idx
+  idx
+end
+
 def scrape_list(url)
   noko = noko_for(url)
 
@@ -38,7 +44,13 @@ def scrape_list(url)
         party: party,
         source: url,
       }
-      puts data
+
+      if not (citeref = li.css('sup a/@href').text).empty?
+        note = noko.css(citeref).text rescue ''
+        if note.match(/Ślubowała? (\d+)\s+(.*?)\s+(\d+)/)
+          data[:start_date] = '%s-%02d-%02d' % [ $3, month($2.downcase), $1 ]
+        end
+      end
       ScraperWiki.save_sqlite([:id, :term], data)
     end
   end
