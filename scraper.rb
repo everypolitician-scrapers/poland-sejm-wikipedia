@@ -90,7 +90,7 @@ def expired_members(noko, url, termid)
 end
 
 { 
-  # 1 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_I_kadencji',
+  1 => 'https://pl.wikipedia.org/w/index.php?title=Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_I_kadencji&stable=0',
   2 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_II_kadencji',
   3 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_III_kadencji',
   4 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_IV_kadencji',
