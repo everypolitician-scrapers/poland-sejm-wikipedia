@@ -33,6 +33,19 @@ def scrape_term(id, url)
 end
 
 
+def area_for(noko, mem)
+  return unless mem
+  area_table = noko.xpath('.//h2[contains(.,"wyborczych")]/following-sibling::table')[1]
+  in_district = area_table.css(%Q!a[href*="#{mem.attr("href")}"]!)
+  return if in_district.empty?
+  district_tr = in_district.xpath('../../..') 
+
+  {
+    id: district_tr.xpath('td').first.text,
+    name: district_tr.xpath('.//preceding::h3[1]/span[@class="mw-headline"]').text
+  }
+end
+
 def current_members(noko, url, termid)
   section = noko.xpath('.//h2[contains(.,"klubowa")]')
   table = section.xpath('following-sibling::table').first
@@ -50,6 +63,12 @@ def current_members(noko, url, termid)
         party: party,
         source: url,
       }
+
+      if area = area_for(noko, mem)
+        data[:area]    = "%s %s" % [area[:name], area[:id]]
+        data[:area_id] = "%s-%s" % [area[:id], termid]
+      end
+
       puts "#{data}".green
       if not (citeref = li.css('sup a/@href').text).empty?
         note = noko.css(citeref).text rescue ''
@@ -83,6 +102,13 @@ def expired_members(noko, url, termid)
       replaced: tds[-1].css('a/@href').text, # TODO map to ID
       source: url,
     }
+
+    replaced = tds[-1].css('a').first
+    if area = area_for(noko, replaced)
+      data[:area]    = "%s %s" % [area[:name], area[:id]]
+      data[:area_id] = "%s-%s" % [area[:id], termid]
+    end
+
     puts "#{data}".cyan
     members << data
   end
@@ -97,6 +123,6 @@ end
   5 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_V_kadencji',
   6 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_VI_kadencji',
   7 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_VII_kadencji',
-}.each do |id, url|
+}.reverse_each do |id, url|
   scrape_term(id, url)
 end
