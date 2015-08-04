@@ -23,17 +23,17 @@ def noko_for(url)
 end
 
 def month(str)
-  ['','styczeń','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'].find_index(str) or raise "Unknown month #{str}"
+  ['','stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'].find_index(str) or raise "Unknown month #{str}"
 end
 
-def scrape_list(url)
+def scrape_term(id, url)
   noko = noko_for(url)
-  members = current_members(noko, url) + expired_members(noko, url)
+  members = current_members(noko, url, id) + expired_members(noko, url, id)
   ScraperWiki.save_sqlite([:name, :term], members)
 end
 
 
-def current_members(noko, url)
+def current_members(noko, url, termid)
   section = noko.xpath('.//h2[contains(.,"klubowa")]')
   table = section.xpath('following-sibling::table').first
   members = []
@@ -46,10 +46,11 @@ def current_members(noko, url)
       data = { 
         name: mem.text,
         wikipedia__pl: URI.join(url, URI.escape(mem.attr('href'))).to_s,
-        term: 7, 
+        term: termid, 
         party: party,
         source: url,
       }
+      puts "#{data}".green
       if not (citeref = li.css('sup a/@href').text).empty?
         note = noko.css(citeref).text rescue ''
         if note.match(/Ślubowała? (\d+)\s+(.*?)\s+(\d+)/)
@@ -62,7 +63,7 @@ def current_members(noko, url)
   members
 end
 
-def expired_members(noko, url)
+def expired_members(noko, url, termid)
   section = noko.xpath('.//h3[contains(.,"mandat wygasł")]')
   table = section.xpath('following-sibling::table').first
   members = []
@@ -77,17 +78,25 @@ def expired_members(noko, url)
       name: mem.text,
       wikipedia__pl: URI.join(url, URI.escape(mem.attr('href'))).to_s,
       party: @colors[color],
-      term: 7, 
+      term: termid, 
       end_date: tds[1].css('span').text,
-      replaced: tds[-1].css('a/@href').first.text, # TODO map to ID
+      replaced: tds[-1].css('a/@href').text, # TODO map to ID
       source: url,
     }
+    puts "#{data}".cyan
     members << data
   end
   members
 end
 
-
-
-
-scrape_list('https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_VII_kadencji')
+{ 
+  # 1 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_I_kadencji',
+  2 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_II_kadencji',
+  3 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_III_kadencji',
+  4 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_IV_kadencji',
+  5 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_V_kadencji',
+  6 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_VI_kadencji',
+  7 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_VII_kadencji',
+}.each do |id, url|
+  scrape_term(id, url)
+end
