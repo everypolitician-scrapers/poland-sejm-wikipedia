@@ -70,7 +70,7 @@ def current_members(noko, url, termid)
         data[:area_id] = "%s-%s" % [area[:id], termid]
       end
 
-      puts "#{data}".green
+      # puts "#{data}".green
       if not (citeref = li.css('sup a/@href').text).empty?
         note = noko.css(citeref).text rescue ''
         if note.match(/Ślubowała? (\d+)\s+(.*?)\s+(\d+)/)
@@ -111,7 +111,7 @@ def expired_members(noko, url, termid)
       data[:area_id] = "%s-%s" % [area[:id], termid]
     end
 
-    puts "#{data}".cyan
+    # puts "#{data}".cyan
     members << data
   end
   members
@@ -126,5 +126,6 @@ end
   6 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_VI_kadencji',
   7 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_VII_kadencji',
 }.reverse_each do |id, url|
+  puts id
   scrape_term(id, url)
 end
