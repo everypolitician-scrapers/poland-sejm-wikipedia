@@ -52,19 +52,21 @@ def wikidata_ids(names)
   Hash[ res.flatten(1) ]
 end
 
-def area_for(noko, mem)
+def area_for(noko, mem, termid)
   return unless mem
   area_table = noko.xpath('.//h2[contains(.,"wyborczych")]/following-sibling::table')[1]
   in_district = area_table.css(%Q!a[href*="#{mem.attr("href")}"]!)
   return if in_district.empty?
   district_tr = in_district.xpath('../../..') 
   id =  district_tr.xpath('td').first.text
-  id = 0 if id.to_s.empty?
-
-  {
-    id: id,
-    name: district_tr.xpath('.//preceding::h3[1]/span[@class="mw-headline"]').text
+  name = district_tr.xpath('.//preceding::h3[1]/span[@class="mw-headline"]').text
+  return { id: nil, name: name } if id.to_s.empty? 
+  return {
+    id:   "%s-%s" % [id, termid] 
+    name: "%s %s" % [name, id]
   }
+  end
+
 end
 
 def current_members(noko, url, termid)
@@ -86,10 +88,9 @@ def current_members(noko, url, termid)
         source: url,
       }
 
-      if area = area_for(noko, mem)
-        binding.pry if area[:id].to_s.empty?
-        data[:area]    = "%s %s" % [area[:name], area[:id]]
-        data[:area_id] = "%s-%s" % [area[:id], termid]
+      if area = area_for(noko, mem, termid)
+        data[:area]    = area[:name]
+        data[:area_id] = area[:id]
       end
 
       # puts "#{data}".green
@@ -128,9 +129,10 @@ def expired_members(noko, url, termid)
     }
 
     replaced = tds[-1].css('a').first
-    if area = area_for(noko, replaced)
-      data[:area]    = "%s %s" % [area[:name], area[:id]]
-      data[:area_id] = "%s-%s" % [area[:id], termid]
+
+    if area = area_for(noko, replaced, termid)
+      data[:area]    = area[:name]
+      data[:area_id] = area[:id]
     end
 
     # puts "#{data}".cyan
