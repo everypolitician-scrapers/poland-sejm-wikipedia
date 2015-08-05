@@ -62,11 +62,9 @@ def area_for(noko, mem, termid)
   name = district_tr.xpath('.//preceding::h3[1]/span[@class="mw-headline"]').text
   return { id: nil, name: name } if id.to_s.empty? 
   return {
-    id:   "%s-%s" % [id, termid] 
+    id:   "%s-%s" % [id, termid],
     name: "%s %s" % [name, id]
   }
-  end
-
 end
 
 def current_members(noko, url, termid)
