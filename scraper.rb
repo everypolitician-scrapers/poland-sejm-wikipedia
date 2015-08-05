@@ -1,10 +1,11 @@
 #!/bin/env ruby
 # encoding: utf-8
 
-require 'scraperwiki'
+require 'colorize'
+require 'mediawiki_api'
 require 'nokogiri'
 require 'open-uri'
-require 'colorize'
+require 'scraperwiki'
 
 require 'pry'
 require 'open-uri/cached'
@@ -29,9 +30,27 @@ end
 def scrape_term(id, url)
   noko = noko_for(url)
   members = current_members(noko, url, id) + expired_members(noko, url, id)
+  id_map = wikidata_ids(members.map { |m| m[:wikipedia__pl] })
+  members.each { |m| m[:wikidata] = id_map[ m[:wikipedia__pl] ] }
   ScraperWiki.save_sqlite([:id, :term], members)
 end
 
+def wikidata_ids(names)
+  client = MediawikiApi::Client.new "https://pl.wikipedia.org/w/api.php"
+  res = names.each_slice(50).map { |sliced|
+    page_args = { 
+      prop: 'pageprops',
+      ppprop: 'wikibase_item',
+      titles: sliced.join("|"),
+      token_type: false,
+    }
+    response = client.action :query, page_args 
+    response.data['pages'].find_all { |p| p.last.key? 'pageprops' }.map { |p| 
+      [ p.last['title'], p.last['pageprops']['wikibase_item'] ]
+    }
+  }
+  Hash[ res.flatten(1) ]
+end
 
 def area_for(noko, mem)
   return unless mem
@@ -59,7 +78,7 @@ def current_members(noko, url, termid)
       data = { 
         id: mem.attr('title').downcase.gsub(/ /,'-'),
         name: mem.text,
-        wikipedia__pl: URI.join(url, URI.escape(mem.attr('href'))).to_s,
+        wikipedia__pl: mem.attr('title'),
         term: termid, 
         party: party,
         source: url,
@@ -97,11 +116,11 @@ def expired_members(noko, url, termid)
     data = { 
       id: mem.attr('title').downcase.gsub(/ /,'-'),
       name: mem.text,
-      wikipedia__pl: URI.join(url, URI.escape(mem.attr('href'))).to_s,
+      wikipedia__pl: mem.attr('title'),
       party: @colors[color],
       term: termid, 
       end_date: tds[1].css('span').text,
-      replaced: tds[-1].css('a/@href').text, # TODO map to ID
+      replaced: tds[-1].css('a/@title').text, 
       source: url,
     }
 
