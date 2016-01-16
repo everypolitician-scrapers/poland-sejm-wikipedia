@@ -30,26 +30,7 @@ end
 def scrape_term(id, url)
   noko = noko_for(url)
   members = current_members(noko, url, id) + expired_members(noko, url, id)
-  id_map = wikidata_ids(members.map { |m| m[:wikipedia__pl] })
-  members.each { |m| m[:wikidata] = id_map[ m[:wikipedia__pl] ] }
   ScraperWiki.save_sqlite([:id, :term], members)
-end
-
-def wikidata_ids(names)
-  client = MediawikiApi::Client.new "https://pl.wikipedia.org/w/api.php"
-  res = names.each_slice(50).map { |sliced|
-    page_args = { 
-      prop: 'pageprops',
-      ppprop: 'wikibase_item',
-      titles: sliced.join("|"),
-      token_type: false,
-    }
-    response = client.action :query, page_args 
-    response.data['pages'].find_all { |p| p.last.key? 'pageprops' }.map { |p| 
-      [ p.last['title'], p.last['pageprops']['wikibase_item'] ]
-    }
-  }
-  Hash[ res.flatten(1) ]
 end
 
 def area_for(noko, mem, termid)
@@ -140,7 +121,7 @@ def expired_members(noko, url, termid)
 end
 
 { 
-  1 => 'https://pl.wikipedia.org/w/index.php?title=Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_I_kadencji&stable=0',
+  1 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_I_kadencji',
   2 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_II_kadencji',
   3 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_III_kadencji',
   4 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_IV_kadencji',
