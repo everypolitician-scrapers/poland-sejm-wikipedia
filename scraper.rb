@@ -53,7 +53,11 @@ def current_members(noko, url, termid)
   table = section.xpath('following-sibling::table').first
   members = []
   table.xpath('tr[th]').each do |klub|
-    party = klub.xpath('th').text.tidy
+    # Make sure we don't pick up any of the notes about the party
+    old_party = klub.xpath('th').text.tidy
+    party = klub.xpath('th/text()').first.text.tidy
+    warn "#{party} was #{old_party}" if party != old_party
+
     color = klub.xpath('following-sibling::tr[1]/td').attr('style').text[/background:\s*#(\w+)/, 1]
     @colors[color] = party
     klub.xpath('following-sibling::tr[2]//li').each do |li|
