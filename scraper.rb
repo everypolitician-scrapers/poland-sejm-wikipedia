@@ -35,10 +35,10 @@ def area_for(noko, mem, termid)
   area_table = noko.xpath('.//h2[contains(.,"wyborczych")]/following-sibling::table')[1]
   in_district = area_table.css(%Q!a[href*="#{mem.attr("href")}"]!)
   return if in_district.empty?
-  district_tr = in_district.xpath('../../..') 
+  district_tr = in_district.xpath('../../..')
   id =  district_tr.xpath('td').first.text
   name = district_tr.xpath('.//preceding::h3[1]/span[@class="mw-headline"]').text
-  return { id: nil, name: name } if id.to_s.empty? 
+  return { id: nil, name: name } if id.to_s.empty?
   return {
     id:   "%s-%s" % [id, termid],
     name: "%s %s" % [name, id]
@@ -59,11 +59,11 @@ def current_members(noko, url, termid)
     @colors[color] = party
     klub.xpath('following-sibling::tr[2]//li').each do |li|
       mem = li.css('a').first
-      data = { 
+      data = {
         id: mem.attr('title').downcase.gsub(/ /,'-'),
         name: mem.text,
         wikipedia__pl: mem.attr('title'),
-        term: termid, 
+        term: termid,
         party: party,
         source: url,
       }
@@ -98,14 +98,14 @@ def expired_members(noko, url, termid)
       color = tds.shift.attr('style')[/background:\s*#(\w+)/, 1]
     end
     mem = tds[0].css('a').first
-    data = { 
+    data = {
       id: mem.attr('title').downcase.gsub(/ /,'-'),
       name: mem.text,
       wikipedia__pl: mem.attr('title'),
       party: @colors[color],
-      term: termid, 
+      term: termid,
       end_date: tds[1].css('span').text,
-      replaced: tds[-1].css('a/@title').text, 
+      replaced: tds[-1].css('a/@title').text,
       source: url,
     }
 
