@@ -49,7 +49,7 @@ def current_members(noko, url, termid)
   section = noko.xpath('.//h2[contains(.,"klubowa")]')
   table = section.xpath('following-sibling::table').first
   members = []
-  table.xpath('tr[th]').each do |klub|
+  table.xpath('.//tr[th]').each do |klub|
     # Make sure we don't pick up any of the notes about the party
     old_party = klub.xpath('th').text.tidy
     party = klub.xpath('th/text()').first.text.tidy
