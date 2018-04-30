@@ -28,6 +28,7 @@ end
 def scrape_term(id, url)
   noko = noko_for(url)
   members = current_members(noko, url, id) + expired_members(noko, url, id)
+  members.each { |mem| puts mem.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h } if ENV['MORPH_DEBUG']
   ScraperWiki.save_sqlite([:id, :term], members)
 end
 
