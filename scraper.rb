@@ -25,11 +25,9 @@ def month(str)
   ['','stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'].find_index(str) or raise "Unknown month #{str}"
 end
 
-def scrape_term(id, url)
+def term_data(id, url)
   noko = noko_for(url)
-  members = current_members(noko, url, id) + expired_members(noko, url, id)
-  members.each { |mem| puts mem.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h } if ENV['MORPH_DEBUG']
-  ScraperWiki.save_sqlite([:id, :term], members)
+  current_members(noko, url, id) + expired_members(noko, url, id)
 end
 
 def area_for(noko, mem, termid)
@@ -136,5 +134,7 @@ ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
   8 => 'https://pl.wikipedia.org/wiki/Pos%C5%82owie_na_Sejm_Rzeczypospolitej_Polskiej_VIII_kadencji',
 }.reverse_each do |id, url|
   puts id
-  scrape_term(id, url)
+  data = term_data(id, url)
+  data.each { |mem| puts mem.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h } if ENV['MORPH_DEBUG']
+  ScraperWiki.save_sqlite([:id, :term], data)
 end
