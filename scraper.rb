@@ -36,8 +36,8 @@ def area_for(noko, mem, termid)
   in_district = area_table.css(%Q!a[href*="#{mem.attr("href")}"]!)
   return if in_district.empty?
   district_tr = in_district.xpath('../../..')
-  id =  district_tr.xpath('td').first.text
-  name = district_tr.xpath('.//preceding::h3[1]/span[@class="mw-headline"]').text
+  id =  district_tr.xpath('td').first.text.tidy
+  name = district_tr.xpath('.//preceding::h3[1]/span[@class="mw-headline"]').text.tidy
   return { id: nil, name: name } if id.to_s.empty?
   return {
     id:   "%s-%s" % [id, termid],
